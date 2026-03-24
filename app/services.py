@@ -18,6 +18,8 @@ class UserService:
     def verify_password(password: str, hashed: str) -> bool:
         return bcrypt.checkpw(password.encode(), hashed.encode())
 
+    # CREATE
+
     @staticmethod
     def create_user(name: str, username: str, password: str):
 
@@ -40,5 +42,20 @@ class UserService:
 
         db.session.add(user)
         db.session.commit()
+
+        return user
+
+    # AUTH
+
+    @staticmethod
+    def authenticate(username: str, password: str):
+
+        user = User.query.filter_by(username=username).first()
+
+        if not user:
+            raise ValueError("Invalid credentials.")
+
+        if not UserService.verify_password(password, user.password):
+            raise ValueError("Invalid credentials.")
 
         return user
