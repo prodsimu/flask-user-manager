@@ -1,5 +1,8 @@
 import bcrypt
 
+from .database import db
+from .models import User, UserRole
+
 
 class UserService:
 
@@ -14,3 +17,28 @@ class UserService:
     @staticmethod
     def verify_password(password: str, hashed: str) -> bool:
         return bcrypt.checkpw(password.encode(), hashed.encode())
+
+    @staticmethod
+    def create_user(name: str, username: str, password: str):
+
+        existing_user = User.query.filter_by(username=username).first()
+
+        if existing_user:
+            raise ValueError("Username already exists.")
+
+        if not 8 <= len(password) <= 64:
+            raise ValueError("Password must be between 8 and 64 characters.")
+
+        hashed_password = UserService.hash_password(password)
+
+        user = User(
+            name=name,
+            username=username,
+            password=hashed_password,
+            role=UserRole.USER.value,
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        return user
