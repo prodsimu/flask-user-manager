@@ -155,3 +155,25 @@ def update_user(user_id, target_user_id):
         "username": target_user.username,
         "role": target_user.role,
     }
+
+
+@user_bp.route("/users/<int:target_user_id>", methods=["DELETE"])
+@login_required
+def delete_user(user_id, target_user_id):
+    current_user = User.query.get(user_id)
+
+    if current_user.role != UserRole.ADMIN.value:
+        return {"error": "Admin access required"}, 403
+
+    if user_id == target_user_id:
+        return {"error": "You can't delete yourself"}, 400
+
+    target_user = User.query.get(target_user_id)
+
+    if not target_user:
+        return {"error": "User not found"}, 404
+
+    db.session.delete(target_user)
+    db.session.commit()
+
+    return {"message": "User deleted"}
