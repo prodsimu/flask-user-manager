@@ -51,13 +51,16 @@ def login():
 @user_bp.route("/users", methods=["GET"])
 @admin_required
 def list_users():
+    users = UserService.list_users()
 
-    users = User.query.all()
-    return jsonify(
-        [
-            {"id": u.id, "name": u.name, "username": u.username, "role": u.role}
-            for u in users
-        ]
+    return (
+        jsonify(
+            [
+                {"id": u.id, "name": u.name, "username": u.username, "role": u.role}
+                for u in users
+            ]
+        ),
+        200,
     )
 
 

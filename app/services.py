@@ -45,6 +45,16 @@ class UserService:
 
         return user
 
+    # READ
+
+    @staticmethod
+    def list_users():
+        return User.query.all()
+
+    # UPDATE
+
+    # DELETE
+
     # AUTH
 
     @staticmethod
