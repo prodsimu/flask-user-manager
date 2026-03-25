@@ -4,11 +4,13 @@ from functools import wraps
 import jwt
 from flask import current_app, request
 
+from .models import User, UserRole
+
 
 def generate_token(user_id: int):
     payload = {
         "user_id": user_id,
-        "exp": datetime.utcnow() + timedelta(hours=1),  # token válido 1 hora
+        "exp": datetime.utcnow() + timedelta(hours=1),
     }
     token = jwt.encode(payload, current_app.config["SECRET_KEY"], algorithm="HS256")
     return token
@@ -42,6 +44,20 @@ def login_required(f):
             user_id = verify_token(token)
         except ValueError as e:
             return {"error": str(e)}, 401
+
+        return f(user_id=user_id, *args, **kwargs)
+
+    return decorated
+
+
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated(user_id, *args, **kwargs):
+        user = User.query.get(user_id)
+
+        if user.role != UserRole.ADMIN.value:
+            return {"error": "Admin access required"}, 403
 
         return f(user_id=user_id, *args, **kwargs)
 
