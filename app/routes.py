@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from .auth import generate_token, login_required
+from .auth import admin_required, generate_token, login_required, self_or_admin_required
 from .database.database import db
 from .models import User, UserRole
 from .services import UserService
@@ -49,12 +49,8 @@ def login():
 
 
 @user_bp.route("/users", methods=["GET"])
-@login_required
-def list_users(user_id):
-    current_user = User.query.get(user_id)
-
-    if current_user.role != UserRole.ADMIN.value:
-        return {"error": "Admin access required"}, 403
+@admin_required
+def list_users():
 
     users = User.query.all()
     return jsonify(
@@ -66,12 +62,8 @@ def list_users(user_id):
 
 
 @user_bp.route("/users", methods=["POST"])
-@login_required
-def create_user_admin(user_id):
-    current_user = User.query.get(user_id)
-
-    if current_user.role != UserRole.ADMIN.value:
-        return {"error": "Admin access required"}, 403
+@admin_required
+def create_user_admin():
 
     data = request.get_json()
     user = UserService.create_user(
@@ -108,16 +100,12 @@ def update_password(user_id):
 
 
 @user_bp.route("/users/<int:target_user_id>", methods=["PUT"])
-@login_required
+@self_or_admin_required
 def update_user(user_id, target_user_id):
-    current_user = User.query.get(user_id)
     target_user = User.query.get(target_user_id)
 
     if not target_user:
         return {"error": "User not found"}, 404
-
-    if current_user.role != UserRole.ADMIN.value and user_id != target_user_id:
-        return {"error": "Permission denied"}, 403
 
     data = request.get_json()
 
@@ -134,10 +122,6 @@ def update_user(user_id, target_user_id):
         if len(data["password"]) < 8 or len(data["password"]) > 64:
             return {"error": "Password too short"}, 400
         target_user.password = UserService.hash_password(data["password"])
-
-    if "role" in data:
-        if current_user.role != UserRole.ADMIN.value:
-            return {"error": "Only admin can change roles"}, 403
 
         if user_id == target_user_id:
             return {"error": "You can't change your own role"}, 400
@@ -158,12 +142,8 @@ def update_user(user_id, target_user_id):
 
 
 @user_bp.route("/users/<int:target_user_id>", methods=["DELETE"])
-@login_required
+@admin_required
 def delete_user(user_id, target_user_id):
-    current_user = User.query.get(user_id)
-
-    if current_user.role != UserRole.ADMIN.value:
-        return {"error": "Admin access required"}, 403
 
     if user_id == target_user_id:
         return {"error": "You can't delete yourself"}, 400
