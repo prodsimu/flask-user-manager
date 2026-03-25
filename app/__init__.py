@@ -2,6 +2,8 @@ import os
 
 from flask import Flask
 
+from app.database.seeds import seed_admin
+
 from .database.database import db
 from .models import User
 
@@ -22,5 +24,12 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+    with app.app_context():
+        db.create_all()
+        created = seed_admin()
+
+        if created:
+            print("Admin created: username=admin | password=admin123")
 
     return app
