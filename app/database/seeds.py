@@ -1,4 +1,4 @@
-from app.database import db
+from app.database.database import db
 from app.models import User, UserRole
 from app.services import UserService
 

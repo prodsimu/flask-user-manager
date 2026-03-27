@@ -1,9 +1,14 @@
 from flask import Blueprint, jsonify, request
 
-from .auth import admin_required, generate_token, login_required, self_or_admin_required
-from .database.database import db
-from .models import User, UserRole
-from .services import UserService
+from app.auth import (
+    admin_required,
+    generate_token,
+    login_required,
+    self_or_admin_required,
+)
+from app.database.database import db
+from app.models import User, UserRole
+from app.services import UserService
 
 user_bp = Blueprint("users", __name__)
 

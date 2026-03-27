@@ -1,7 +1,7 @@
 import bcrypt
 
-from .database.database import db
-from .models import User, UserRole
+from app.database.database import db
+from app.models import User, UserRole
 
 
 class UserService:
@@ -84,8 +84,13 @@ class UserService:
     # DELETE
 
     @staticmethod
-    def delete(user_id):
-        user = User.query.get_or_404(user_id)
+    def delete(current_user_id, target_user_id):
+
+        user = User.query.get_or_404(target_user_id)
+
+        if current_user_id == user.id:
+            raise PermissionError("You can't delete your own user.")
+
         db.session.delete(user)
         db.session.commit()
 

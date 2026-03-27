@@ -4,7 +4,7 @@ from functools import wraps
 import jwt
 from flask import current_app, request
 
-from .models import User, UserRole
+from app.models import User, UserRole
 
 
 def generate_token(user_id: int):
