@@ -4,6 +4,7 @@ from functools import wraps
 import jwt
 from flask import current_app, request
 
+from app.database.database import db
 from app.models import User, UserRole
 
 
@@ -71,7 +72,7 @@ def admin_required(f):
         except ValueError as e:
             return {"error": str(e)}, 401
 
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
 
         if not user or user.role != UserRole.ADMIN.value:
             return {"error": "Admin access required"}, 403
@@ -95,7 +96,7 @@ def self_or_admin_required(f):
             return {"error": str(e)}, 401
 
         target_user_id = kwargs.get("target_user_id")
-        current_user = User.query.get(user_id)
+        current_user = db.session.get(User, user_id)
 
         if not current_user or (
             current_user.role != UserRole.ADMIN.value and user_id != target_user_id

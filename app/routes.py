@@ -6,6 +6,7 @@ from app.auth import (
     login_required,
     self_or_admin_required,
 )
+from app.database.database import db
 from app.models import User
 from app.services import UserService
 
@@ -85,7 +86,7 @@ def create_user_admin(user_id):
 @user_bp.route("/profile", methods=["GET"])
 @login_required
 def profile(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     return jsonify(
         {"id": user.id, "name": user.name, "username": user.username, "role": user.role}
     )
