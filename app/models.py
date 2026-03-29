@@ -30,6 +30,10 @@ class User(db.Model):
     password = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(10), nullable=False, default=UserRole.USER.value)
 
+    projects = db.relationship(
+        "Project", back_populates="owner", cascade="all, delete-orphan"
+    )
+
 
 class Project(db.Model):
     __tablename__ = "projects"
