@@ -44,3 +44,19 @@ class Project(db.Model):
     tasks = db.relationship(
         "Task", back_populates="project", cascade="all, delete-orphan"
     )
+
+
+class Task(db.Model):
+    __tablename__ = "tasks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default=TaskStatus.TODO.value)
+    priority = db.Column(
+        db.String(10), nullable=False, default=TaskPriority.MEDIUM.value
+    )
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
+    project = db.relationship("Project", back_populates="tasks")
