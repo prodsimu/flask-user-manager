@@ -28,17 +28,25 @@ def verify_token(token: str):
         raise ValueError("Invalid token")
 
 
+def _get_token_from_request():
+    token = request.headers.get("Authorization")
+
+    if not token:
+        return None, ({"error": "Token missing"}, 401)
+
+    if token.startswith("Bearer "):
+        token = token[7:]
+
+    return token, None
+
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+        token, error = _get_token_from_request()
 
-        if not token:
-            return {"error": "Token missing"}, 401
-
-        # remove "Bearer " se existir
-        if token.startswith("Bearer "):
-            token = token[7:]
+        if error:
+            return error
 
         try:
             user_id = verify_token(token)
@@ -52,11 +60,20 @@ def login_required(f):
 
 def admin_required(f):
     @wraps(f)
-    @login_required
-    def decorated(user_id, *args, **kwargs):
+    def decorated(*args, **kwargs):
+        token, error = _get_token_from_request()
+
+        if error:
+            return error
+
+        try:
+            user_id = verify_token(token)
+        except ValueError as e:
+            return {"error": str(e)}, 401
+
         user = User.query.get(user_id)
 
-        if user.role != UserRole.ADMIN.value:
+        if not user or user.role != UserRole.ADMIN.value:
             return {"error": "Admin access required"}, 403
 
         return f(user_id=user_id, *args, **kwargs)
@@ -66,13 +83,25 @@ def admin_required(f):
 
 def self_or_admin_required(f):
     @wraps(f)
-    @login_required
-    def decorated(user_id, target_user_id, *args, **kwargs):
+    def decorated(*args, **kwargs):
+        token, error = _get_token_from_request()
+
+        if error:
+            return error
+
+        try:
+            user_id = verify_token(token)
+        except ValueError as e:
+            return {"error": str(e)}, 401
+
+        target_user_id = kwargs.get("target_user_id")
         current_user = User.query.get(user_id)
 
-        if current_user.role != UserRole.ADMIN.value and user_id != target_user_id:
+        if not current_user or (
+            current_user.role != UserRole.ADMIN.value and user_id != target_user_id
+        ):
             return {"error": "Permission denied"}, 403
 
-        return f(user_id=user_id, target_user_id=target_user_id, *args, **kwargs)
+        return f(user_id=user_id, *args, **kwargs)
 
     return decorated
