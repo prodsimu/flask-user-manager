@@ -8,7 +8,7 @@ from app.auth import (
 )
 from app.database.database import db
 from app.models import User
-from app.services import UserService
+from app.services.user_service import UserService
 
 user_bp = Blueprint("users", __name__)
 

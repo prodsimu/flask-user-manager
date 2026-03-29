@@ -2,7 +2,7 @@ from sqlalchemy import select
 
 from app.database.database import db
 from app.models import User, UserRole
-from app.services import UserService
+from app.services.user_service import UserService
 
 
 def seed_admin():
