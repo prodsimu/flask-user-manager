@@ -76,3 +76,35 @@ class TaskService:
             raise ValueError("Task not found.")
 
         return task
+
+    # UPDATE
+
+    @staticmethod
+    def update_task(project_id: int, task_id: int, owner_id: int, data: dict):
+        task = TaskService.get_task(project_id, task_id, owner_id)
+
+        if "title" in data:
+            if not data["title"] or len(data["title"].strip()) == 0:
+                raise ValueError("Title is required.")
+            if len(data["title"]) > 100:
+                raise ValueError("Title must be at most 100 characters.")
+            task.title = data["title"].strip()
+
+        if "description" in data:
+            if data["description"] and len(data["description"]) > 255:
+                raise ValueError("Description must be at most 255 characters.")
+            task.description = data["description"]
+
+        if "status" in data:
+            if data["status"] not in [s.value for s in TaskStatus]:
+                raise ValueError("Invalid status.")
+            task.status = data["status"]
+
+        if "priority" in data:
+            if data["priority"] not in [p.value for p in TaskPriority]:
+                raise ValueError("Invalid priority.")
+            task.priority = data["priority"]
+
+        db.session.commit()
+
+        return task
