@@ -48,4 +48,24 @@ class ProjectService:
 
     # UPDATE
 
+    @staticmethod
+    def update_project(project_id: int, owner_id: int, data: dict):
+        project = ProjectService.get_project(project_id, owner_id)
+
+        if "title" in data:
+            if not data["title"] or len(data["title"].strip()) == 0:
+                raise ValueError("Title is required.")
+            if len(data["title"]) > 100:
+                raise ValueError("Title must be at most 100 characters.")
+            project.title = data["title"].strip()
+
+        if "description" in data:
+            if data["description"] and len(data["description"]) > 255:
+                raise ValueError("Description must be at most 255 characters.")
+            project.description = data["description"]
+
+        db.session.commit()
+
+        return project
+
     # DELETE
