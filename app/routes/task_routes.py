@@ -38,3 +38,32 @@ def create_task(user_id, project_id):
 
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
+
+
+@task_bp.route("/projects/<int:project_id>/tasks", methods=["GET"])
+@login_required
+def list_tasks(user_id, project_id):
+    try:
+        tasks = TaskService.list_tasks(project_id=project_id, owner_id=user_id)
+        return (
+            jsonify(
+                [
+                    {
+                        "id": t.id,
+                        "title": t.title,
+                        "description": t.description,
+                        "status": t.status,
+                        "priority": t.priority,
+                        "created_at": t.created_at.isoformat(),
+                    }
+                    for t in tasks
+                ]
+            ),
+            200,
+        )
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
