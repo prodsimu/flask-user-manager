@@ -69,3 +69,10 @@ class ProjectService:
         return project
 
     # DELETE
+
+    @staticmethod
+    def delete_project(project_id: int, owner_id: int):
+        project = ProjectService.get_project(project_id, owner_id)
+
+        db.session.delete(project)
+        db.session.commit()
