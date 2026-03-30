@@ -105,3 +105,17 @@ def update_project(user_id, project_id):
 
     except PermissionError as e:
         return jsonify({"error": str(e)}), 403
+
+
+@project_bp.route("/projects/<int:project_id>", methods=["DELETE"])
+@login_required
+def delete_project(user_id, project_id):
+    try:
+        ProjectService.delete_project(project_id=project_id, owner_id=user_id)
+        return jsonify({"message": "Project deleted"}), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
