@@ -30,6 +30,10 @@ class ProjectService:
 
     # READ
 
+    @staticmethod
+    def list_projects(owner_id: int):
+        return Project.query.filter_by(owner_id=owner_id).all()
+
     # UPDATE
 
     # DELETE
