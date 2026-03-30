@@ -59,3 +59,20 @@ class TaskService:
             raise PermissionError("Access denied.")
 
         return Task.query.filter_by(project_id=project_id).all()
+
+    @staticmethod
+    def get_task(project_id: int, task_id: int, owner_id: int):
+        project = db.session.get(Project, project_id)
+
+        if not project:
+            raise ValueError("Project not found.")
+
+        if project.owner_id != owner_id:
+            raise PermissionError("Access denied.")
+
+        task = db.session.get(Task, task_id)
+
+        if not task or task.project_id != project_id:
+            raise ValueError("Task not found.")
+
+        return task
