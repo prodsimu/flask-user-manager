@@ -51,3 +51,27 @@ def list_projects(user_id):
         ),
         200,
     )
+
+
+@project_bp.route("/projects/<int:project_id>", methods=["GET"])
+@login_required
+def get_project(user_id, project_id):
+    try:
+        project = ProjectService.get_project(project_id=project_id, owner_id=user_id)
+        return (
+            jsonify(
+                {
+                    "id": project.id,
+                    "title": project.title,
+                    "description": project.description,
+                    "created_at": project.created_at.isoformat(),
+                }
+            ),
+            200,
+        )
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
