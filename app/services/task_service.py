@@ -4,6 +4,31 @@ from app.models import Project, Task, TaskPriority, TaskStatus
 
 class TaskService:
 
+    @staticmethod
+    def _check_access(project_id: int, user_id: int, require_editor: bool = False):
+        project = db.session.get(Project, project_id)
+
+        if not project:
+            raise ValueError("Project not found.")
+
+        is_owner = project.owner_id == user_id
+
+        if is_owner:
+            return project
+
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=user_id,
+        ).first()
+
+        if not member:
+            raise PermissionError("Access denied.")
+
+        if require_editor and member.role != MemberRole.EDITOR.value:
+            raise PermissionError("Editor access required.")
+
+        return project
+
     # CREATE
 
     @staticmethod
