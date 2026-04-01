@@ -53,6 +53,9 @@ class Project(db.Model):
     tasks = db.relationship(
         "Task", back_populates="project", cascade="all, delete-orphan"
     )
+    members = db.relationship(
+        "ProjectMember", back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class Task(db.Model):
