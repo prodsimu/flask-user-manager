@@ -100,3 +100,20 @@ class MemberService:
         db.session.commit()
 
         return member
+
+    # DELETE
+
+    @staticmethod
+    def remove_member(project_id: int, owner_id: int, target_user_id: int):
+        MemberService._get_project_as_owner(project_id, owner_id)
+
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=target_user_id,
+        ).first()
+
+        if not member:
+            raise ValueError("Member not found.")
+
+        db.session.delete(member)
+        db.session.commit()
