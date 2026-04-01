@@ -8,6 +8,38 @@ member_bp = Blueprint("members", __name__)
 
 # GET
 
+
+@member_bp.route("/projects/<int:project_id>/members", methods=["GET"])
+@login_required
+def list_members(user_id, project_id):
+    try:
+        members = MemberService.list_members(
+            project_id=project_id,
+            requester_id=user_id,
+        )
+        return (
+            jsonify(
+                [
+                    {
+                        "id": m.id,
+                        "user_id": m.user_id,
+                        "username": m.user.username,
+                        "role": m.role,
+                        "joined_at": m.joined_at.isoformat(),
+                    }
+                    for m in members
+                ]
+            ),
+            200,
+        )
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+
+
 # POST
 
 
