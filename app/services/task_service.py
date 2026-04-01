@@ -1,5 +1,12 @@
 from app.database.database import db
-from app.models import Project, Task, TaskPriority, TaskStatus
+from app.models import (
+    MemberRole,
+    Project,
+    ProjectMember,
+    Task,
+    TaskPriority,
+    TaskStatus,
+)
 
 
 class TaskService:
@@ -29,8 +36,6 @@ class TaskService:
 
         return project
 
-    # CREATE
-
     @staticmethod
     def create_task(
         project_id: int,
@@ -39,13 +44,7 @@ class TaskService:
         description: str = None,
         priority: str = TaskPriority.MEDIUM.value,
     ):
-        project = db.session.get(Project, project_id)
-
-        if not project:
-            raise ValueError("Project not found.")
-
-        if project.owner_id != owner_id:
-            raise PermissionError("Access denied.")
+        TaskService._check_access(project_id, owner_id, require_editor=True)
 
         if not title or len(title.strip()) == 0:
             raise ValueError("Title is required.")
@@ -83,15 +82,9 @@ class TaskService:
 
     @staticmethod
     def list_tasks(
-        project_id: int, owner_id: int, status: str = None, priority: str = None
+        project_id: int, user_id: int, status: str = None, priority: str = None
     ):
-        project = db.session.get(Project, project_id)
-
-        if not project:
-            raise ValueError("Project not found.")
-
-        if project.owner_id != owner_id:
-            raise PermissionError("Access denied.")
+        TaskService._check_access(project_id, user_id)
 
         if status and status not in [s.value for s in TaskStatus]:
             raise ValueError("Invalid status.")
@@ -110,14 +103,8 @@ class TaskService:
         return query.order_by(Task.status, Task.position).all()
 
     @staticmethod
-    def get_task(project_id: int, task_id: int, owner_id: int):
-        project = db.session.get(Project, project_id)
-
-        if not project:
-            raise ValueError("Project not found.")
-
-        if project.owner_id != owner_id:
-            raise PermissionError("Access denied.")
+    def get_task(project_id: int, task_id: int, user_id: int):
+        TaskService._check_access(project_id, user_id)
 
         task = db.session.get(Task, task_id)
 
@@ -129,8 +116,13 @@ class TaskService:
     # UPDATE
 
     @staticmethod
-    def update_task(project_id: int, task_id: int, owner_id: int, data: dict):
-        task = TaskService.get_task(project_id, task_id, owner_id)
+    def update_task(project_id: int, task_id: int, user_id: int, data: dict):
+        TaskService._check_access(project_id, user_id, require_editor=True)
+
+        task = db.session.get(Task, task_id)
+
+        if not task or task.project_id != project_id:
+            raise ValueError("Task not found.")
 
         if "title" in data:
             if not data["title"] or len(data["title"].strip()) == 0:
@@ -158,22 +150,18 @@ class TaskService:
 
         return task
 
-    # DELETE
-
-    @staticmethod
-    def delete_task(project_id: int, task_id: int, owner_id: int):
-        task = TaskService.get_task(project_id, task_id, owner_id)
-
-        db.session.delete(task)
-        db.session.commit()
-
     # MOVE
 
     @staticmethod
     def move_task(
-        project_id: int, task_id: int, owner_id: int, new_status: str, new_position: int
+        project_id: int, task_id: int, user_id: int, new_status: str, new_position: int
     ):
-        task = TaskService.get_task(project_id, task_id, owner_id)
+        TaskService._check_access(project_id, user_id, require_editor=True)
+
+        task = db.session.get(Task, task_id)
+
+        if not task or task.project_id != project_id:
+            raise ValueError("Task not found.")
 
         if new_status not in [s.value for s in TaskStatus]:
             raise ValueError("Invalid status.")
@@ -194,7 +182,20 @@ class TaskService:
             t.position = index
 
         task.status = new_status
-
         db.session.commit()
 
         return task
+
+    # DELETE
+
+    @staticmethod
+    def delete_task(project_id: int, task_id: int, user_id: int):
+        TaskService._check_access(project_id, user_id, require_editor=True)
+
+        task = db.session.get(Task, task_id)
+
+        if not task or task.project_id != project_id:
+            raise ValueError("Task not found.")
+
+        db.session.delete(task)
+        db.session.commit()
