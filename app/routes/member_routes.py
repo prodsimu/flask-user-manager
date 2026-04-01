@@ -113,3 +113,23 @@ def update_member_role(user_id, project_id, target_user_id):
 
 
 # DELETE
+
+
+@member_bp.route(
+    "/projects/<int:project_id>/members/<int:target_user_id>", methods=["DELETE"]
+)
+@login_required
+def remove_member(user_id, project_id, target_user_id):
+    try:
+        MemberService.remove_member(
+            project_id=project_id,
+            owner_id=user_id,
+            target_user_id=target_user_id,
+        )
+        return jsonify({"message": "Member removed"}), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
