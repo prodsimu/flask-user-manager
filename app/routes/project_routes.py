@@ -12,7 +12,7 @@ project_bp = Blueprint("projects", __name__)
 @project_bp.route("/projects", methods=["GET"])
 @login_required
 def list_projects(user_id):
-    projects = ProjectService.list_projects(owner_id=user_id)
+    projects = ProjectService.list_projects(user_id=user_id)
     return (
         jsonify(
             [
