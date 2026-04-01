@@ -70,3 +70,21 @@ class Task(db.Model):
 
     project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
     project = db.relationship("Project", back_populates="tasks")
+
+
+class ProjectMember(db.Model):
+    __tablename__ = "project_members"
+
+    id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(db.String(10), nullable=False, default=MemberRole.VIEWER.value)
+    joined_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id"), nullable=False)
+
+    user = db.relationship("User", back_populates="memberships")
+    project = db.relationship("Project", back_populates="members")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "project_id", name="unique_member_per_project"),
+    )
