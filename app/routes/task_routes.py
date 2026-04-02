@@ -54,7 +54,7 @@ def get_task(user_id, project_id, task_id):
         task = TaskService.get_task(
             project_id=project_id,
             task_id=task_id,
-            owner_id=user_id,
+            user_id=user_id,
         )
         return (
             jsonify(
@@ -89,7 +89,7 @@ def create_task(user_id, project_id):
     try:
         task = TaskService.create_task(
             project_id=project_id,
-            owner_id=user_id,
+            user_id=user_id,
             title=data.get("title"),
             description=data.get("description"),
             priority=data.get("priority", "medium"),
@@ -128,7 +128,7 @@ def update_task(user_id, project_id, task_id):
         task = TaskService.update_task(
             project_id=project_id,
             task_id=task_id,
-            owner_id=user_id,
+            user_id=user_id,
             data=data,
         )
         return (
@@ -165,7 +165,7 @@ def move_task(user_id, project_id, task_id):
         task = TaskService.move_task(
             project_id=project_id,
             task_id=task_id,
-            owner_id=user_id,
+            user_id=user_id,
             new_status=data.get("status"),
             new_position=data.get("position", 0),
         )
@@ -201,7 +201,7 @@ def delete_task(user_id, project_id, task_id):
         TaskService.delete_task(
             project_id=project_id,
             task_id=task_id,
-            owner_id=user_id,
+            user_id=user_id,
         )
         return jsonify({"message": "Task deleted"}), 200
 
