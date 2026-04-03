@@ -47,8 +47,18 @@ class UserService:
     # READ
 
     @staticmethod
-    def list_users():
-        return User.query.all()
+    def list_users(page: int = 1, per_page: int = 10):
+        pagination = User.query.paginate(page=page, per_page=per_page, error_out=False)
+
+        return {
+            "data": pagination.items,
+            "pagination": {
+                "page": pagination.page,
+                "per_page": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+            },
+        }
 
     # UPDATE
 
