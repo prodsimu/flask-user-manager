@@ -87,6 +87,41 @@ def get_task(user_id, project_id, task_id):
         return jsonify({"error": str(e)}), 403
 
 
+@task_bp.route(
+    "/projects/<int:project_id>/tasks/<int:task_id>/history", methods=["GET"]
+)
+@login_required
+def get_task_history(user_id, project_id, task_id):
+    try:
+        history = TaskService.get_task_history(
+            project_id=project_id,
+            task_id=task_id,
+            user_id=user_id,
+        )
+        return (
+            jsonify(
+                [
+                    {
+                        "id": h.id,
+                        "field": h.field,
+                        "old_value": h.old_value,
+                        "new_value": h.new_value,
+                        "changed_by": h.changed_by,
+                        "changed_at": h.changed_at.isoformat(),
+                    }
+                    for h in history
+                ]
+            ),
+            200,
+        )
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+
+
 # POST
 
 
